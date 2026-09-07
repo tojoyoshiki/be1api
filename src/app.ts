@@ -17,6 +17,71 @@ app.get("/", (req, res) => {
 
 
 // ================================
+// usersテーブル取得
+// ================================
+// URL:
+// https://be1api-3.onrender.com/users
+// ================================
+app.get("/users", async (req, res) => {
+    try {
+        const result = await pool.query(
+            `SELECT
+                id,
+                name,
+                email,
+                "createdAt"
+             FROM users
+             ORDER BY id`
+        );
+
+        res.json(result.rows);
+
+    } catch (error) {
+        console.error(error);
+
+        res.status(500).json({
+            error: "Database error"
+        });
+    }
+});
+
+
+// ================================
+// ランキング取得（公開用）
+// ================================
+// URL:
+// https://be1api-3.onrender.com/ranking
+//
+// 認証なしでランキングを確認できる
+// ================================
+app.get("/ranking", async (req, res) => {
+    try {
+        const result = await pool.query(
+            `SELECT
+                scores.id,
+                scores.score,
+                scores."userId",
+                users.name
+             FROM scores
+             LEFT JOIN users
+                ON scores."userId" = users.id
+             ORDER BY scores.score DESC
+             LIMIT 5`
+        );
+
+        res.json(result.rows);
+
+    } catch (error) {
+        console.error(error);
+
+        res.status(500).json({
+            error: "Database error"
+        });
+    }
+});
+
+
+// ================================
 // JWT秘密鍵
 // ================================
 const JWT_SECRET =
@@ -259,7 +324,8 @@ app.post(
 
 // ================================
 // スコアランキング取得
-// ユーザー情報とスコアを紐づける
+// ================================
+// JWT認証が必要
 // ================================
 app.get(
     "/scores",
